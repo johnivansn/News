@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: ./server
+    volumes:
+      - cms-content:/app/content
+      - cms-auth:/app/auth
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+
+  frontend:
+    build: ./client
+    ports:
+      - "80:80"
+
+volumes:
+  cms-content:
+  cms-auth:
