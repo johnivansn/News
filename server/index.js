@@ -1,12 +1,41 @@
 const express = require("express");
+const fs = require("fs/promises");
+const path = require("path");
+const bcrypt = require("bcrypt");
 
-require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const cors = require("cors");
 const authRoutes = require("./routes/auth");
 const newsRoutes = require("./routes/news");
 const healthRoutes = require("./routes/health");
 const uploadRoutes = require("./routes/upload");
+
+const USERS_PATH = path.join(__dirname, "..", "auth", "users.json");
+
+async function ensureUsersFile() {
+  try {
+    await fs.access(USERS_PATH);
+    return;
+  } catch (_) {
+    // File does not exist yet
+  }
+
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password) {
+    console.warn(
+      "ADMIN_EMAIL/ADMIN_PASSWORD no configurados: users.json no creado."
+    );
+    return;
+  }
+
+  await fs.mkdir(path.dirname(USERS_PATH), { recursive: true });
+  const hashed = await bcrypt.hash(password, 10);
+  const payload = { email, password: hashed };
+  await fs.writeFile(USERS_PATH, JSON.stringify(payload, null, 2), "utf8");
+  console.log("users.json creado desde variables de entorno.");
+}
 
 const app = express();
 
@@ -26,6 +55,8 @@ app.use(newsRoutes);
 app.use(uploadRoutes);
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => {
-  console.log(`API listening on port ${port}`);
+ensureUsersFile().finally(() => {
+  app.listen(port, () => {
+    console.log(`API listening on port ${port}`);
+  });
 });
