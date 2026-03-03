@@ -219,6 +219,27 @@
   color: #6a6f77;
 }
 
+.pdf-section {
+  margin-top: 24px;
+}
+
+.pdf-viewer {
+  border: 1px solid #e6e6ea;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+  overflow: auto;
+  width: 100%;
+}
+
+.pdf-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
 .admin-side {
   position: sticky;
   top: 24px;

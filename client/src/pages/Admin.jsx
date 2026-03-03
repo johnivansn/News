@@ -219,12 +219,7 @@ function Admin() {
 
   return (
     <section className="panel">
-      <div className="card admin-hero">
-        <div>
-          <h1>Panel de administración</h1>
-          <p>Gestiona tus publicaciones en un solo lugar.</p>
-        </div>
-      </div>
+
 
       <div className="admin-grid">
         <aside className="card panel admin-side">
