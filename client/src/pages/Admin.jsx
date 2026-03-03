@@ -107,6 +107,32 @@ function Admin() {
     await loadNews();
   }
 
+  async function handleDelete() {
+    if (!selectedSlug) {
+      setMessage("Selecciona una noticia para eliminar");
+      return;
+    }
+    setMessage("");
+    const res = await fetch(`${API_URL}/api/news/${selectedSlug}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setMessage(data.error || "No se pudo eliminar");
+      return;
+    }
+    setMessage("Noticia eliminada");
+    setTitle("");
+    setContent("");
+    setImage("");
+    setPdfUrl("");
+    setSelectedSlug("");
+    await loadNews();
+  }
+
   return (
     <section className="panel">
       <div className="card">
@@ -185,6 +211,14 @@ function Admin() {
             disabled={!token}
           >
             Guardar cambios
+          </button>
+          <button
+            className="btn secondary"
+            type="button"
+            onClick={handleDelete}
+            disabled={!token}
+          >
+            Eliminar
           </button>
           <button
             className="btn secondary"
