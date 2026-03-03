@@ -5,9 +5,9 @@ const matter = require("gray-matter");
 const slugify = require("slugify");
 const authMiddleware = require("../middleware/authMiddleware");
 const { writeFileAtomic } = require("../utils/fileWriter");
+const { NEWS_DIR } = require("../utils/paths");
 
 const router = express.Router();
-const NEWS_DIR = path.join(__dirname, "..", "..", "content", "news");
 
 function buildFilename(title) {
   const date = new Date().toISOString().slice(0, 10);

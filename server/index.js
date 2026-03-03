@@ -11,7 +11,7 @@ const newsRoutes = require("./routes/news");
 const healthRoutes = require("./routes/health");
 const uploadRoutes = require("./routes/upload");
 
-const USERS_PATH = path.join(__dirname, "..", "auth", "users.json");
+const { USERS_PATH, AUTH_DIR } = require("./utils/paths");
 
 async function ensureUsersFile() {
   try {
@@ -30,7 +30,7 @@ async function ensureUsersFile() {
     return;
   }
 
-  await fs.mkdir(path.dirname(USERS_PATH), { recursive: true });
+  await fs.mkdir(AUTH_DIR, { recursive: true });
   const hashed = await bcrypt.hash(password, 10);
   const payload = { email, password: hashed };
   await fs.writeFile(USERS_PATH, JSON.stringify(payload, null, 2), "utf8");

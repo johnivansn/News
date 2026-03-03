@@ -1,12 +1,11 @@
 const express = require("express");
 const fs = require("fs/promises");
-const path = require("path");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const rateLimiter = require("../middleware/rateLimiter");
+const { USERS_PATH } = require("../utils/paths");
 
 const router = express.Router();
-const USERS_PATH = path.join(__dirname, "..", "..", "auth", "users.json");
 
 router.post("/api/auth/login", rateLimiter, async (req, res) => {
   const { email, password } = req.body || {};

@@ -1,9 +1,7 @@
 const fs = require("fs");
-const path = require("path");
 const readline = require("readline");
 const bcrypt = require("bcrypt");
-
-const USERS_PATH = path.join(__dirname, "..", "..", "auth", "users.json");
+const { USERS_PATH, AUTH_DIR } = require("../utils/paths");
 const SALT_ROUNDS = 10;
 
 function ask(question) {
@@ -31,7 +29,7 @@ async function main() {
   const hash = await bcrypt.hash(password, SALT_ROUNDS);
   const payload = { email, password: hash };
 
-  fs.mkdirSync(path.dirname(USERS_PATH), { recursive: true });
+  fs.mkdirSync(AUTH_DIR, { recursive: true });
   fs.writeFileSync(USERS_PATH, JSON.stringify(payload, null, 2), "utf8");
 
   console.log(`Usuario creado en ${USERS_PATH}`);
