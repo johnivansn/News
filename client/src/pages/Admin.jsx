@@ -77,6 +77,36 @@ function Admin() {
     await loadNews();
   }
 
+  async function handleUpdate(e) {
+    e.preventDefault();
+    if (!selectedSlug) {
+      setMessage("Selecciona una noticia para editar");
+      return;
+    }
+    setMessage("");
+    const res = await fetch(`${API_URL}/api/news/${selectedSlug}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title,
+        content,
+        image,
+        pdf_url: pdfUrl,
+        status: "published",
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setMessage(data.error || "No se pudo actualizar");
+      return;
+    }
+    setMessage("Noticia actualizada");
+    await loadNews();
+  }
+
   return (
     <section className="panel">
       <div className="card">
@@ -151,11 +181,20 @@ function Admin() {
           <button
             className="btn secondary"
             type="button"
+            onClick={handleUpdate}
+            disabled={!token}
+          >
+            Guardar cambios
+          </button>
+          <button
+            className="btn secondary"
+            type="button"
             onClick={() => {
               setTitle("");
               setContent("");
               setImage("");
               setPdfUrl("");
+              setSelectedSlug("");
             }}
           >
             Limpiar
