@@ -28,7 +28,19 @@ function App() {
       </main>
 
       <footer className="footer">
-        <div className="container">© 2026 Noticias</div>
+        <div className="container footer-inner">
+          <span>© 2026 Noticias</span>
+          <nav className="footer-links">
+            <a href="/#acerca">Acerca de</a>
+            <a
+              href="https://wa.me/59173758952"
+              target="_blank"
+              rel="noreferrer"
+            >
+              WhatsApp
+            </a>
+          </nav>
+        </div>
       </footer>
     </div>
   );
