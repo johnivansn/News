@@ -518,7 +518,7 @@ function Admin() {
       </form>
       )}
 
-      {message && <div className="card">{message}</div>}
+      {message && <div className="alert">{message}</div>}
 
       {confirmAction && (
         <div className="modal-backdrop">

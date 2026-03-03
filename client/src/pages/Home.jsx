@@ -27,11 +27,6 @@ function Home() {
     });
   }
 
-  function excerpt(text) {
-    if (!text) return "";
-    return text.length > 140 ? `${text.slice(0, 140)}...` : text;
-  }
-
   return (
     <section className="panel">
       <div className="card hero-compact" id="acerca">
@@ -66,7 +61,7 @@ function Home() {
               {item.frontmatter?.pdf_url && (
                 <span className="news-badge">PDF</span>
               )}
-              <p className="news-excerpt">{excerpt(item.content)}</p>
+              <p className="news-excerpt">{item.content}</p>
             </div>
           </Link>
         ))}

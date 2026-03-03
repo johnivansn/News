@@ -8,7 +8,7 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <div className="container header-inner">
+        <div className="header-inner">
           <Link to="/" className="brand">
             NOTICIAS
           </Link>
