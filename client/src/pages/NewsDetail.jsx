@@ -69,35 +69,37 @@ function NewsDetail() {
       <p style={{ whiteSpace: "pre-wrap" }}>{item.content}</p>
       {item.frontmatter?.pdf_url && (
         <section className="pdf-section">
-          <div
-            className="pdf-viewer"
-            ref={containerRef}
-            style={{
-              height: pageHeight ? `${pageHeight + 12}px` : "auto",
-            }}
-          >
-            <Document
-              file={item.frontmatter.pdf_url}
-              onLoadSuccess={({ numPages: total }) => {
-                setNumPages(total);
-                setPageNumber(1);
+          {item.frontmatter?.pdf_show && (
+            <div
+              className="pdf-viewer"
+              ref={containerRef}
+              style={{
+                height: pageHeight ? `${pageHeight + 12}px` : "auto",
               }}
             >
-              <Page
-                pageNumber={pageNumber}
-                width={pageWidth || undefined}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-                onLoadSuccess={(page) => {
-                  if (!pageWidth) return;
-                  const viewport = page.getViewport({ scale: 1 });
-                  const scale = pageWidth / viewport.width;
-                  setPageHeight(Math.round(viewport.height * scale));
+              <Document
+                file={item.frontmatter.pdf_url}
+                onLoadSuccess={({ numPages: total }) => {
+                  setNumPages(total);
+                  setPageNumber(1);
                 }}
-              />
-            </Document>
-          </div>
-          {numPages > 1 && (
+              >
+                <Page
+                  pageNumber={pageNumber}
+                  width={pageWidth || undefined}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  onLoadSuccess={(page) => {
+                    if (!pageWidth) return;
+                    const viewport = page.getViewport({ scale: 1 });
+                    const scale = pageWidth / viewport.width;
+                    setPageHeight(Math.round(viewport.height * scale));
+                  }}
+                />
+              </Document>
+            </div>
+          )}
+          {item.frontmatter?.pdf_show && numPages > 1 && (
             <div className="pdf-actions">
               <button
                 className="btn secondary"

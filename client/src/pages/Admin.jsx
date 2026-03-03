@@ -17,6 +17,7 @@ function Admin() {
   const [token, setToken] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberEmail, setRememberEmail] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [news, setNews] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState("");
@@ -26,6 +27,7 @@ function Admin() {
   const [image, setImage] = useState("");
   const [pdfUrl, setPdfUrl] = useState("");
   const [pdfName, setPdfName] = useState("");
+  const [pdfEmbed, setPdfEmbed] = useState(false);
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
@@ -49,7 +51,10 @@ function Admin() {
     const savedToken = localStorage.getItem(tokenStorageKey);
     if (savedToken) setToken(savedToken);
     const savedEmail = localStorage.getItem(emailStorageKey);
-    if (savedEmail) setEmail(savedEmail);
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberEmail(true);
+    }
     loadNews();
   }, []);
 
@@ -68,7 +73,11 @@ function Admin() {
     }
     setToken(data.token);
     localStorage.setItem(tokenStorageKey, data.token);
-    localStorage.setItem(emailStorageKey, email);
+    if (rememberEmail) {
+      localStorage.setItem(emailStorageKey, email);
+    } else {
+      localStorage.removeItem(emailStorageKey);
+    }
     setMessage("");
     await loadNews();
   }
@@ -94,6 +103,7 @@ function Admin() {
         image,
         pdf_url: pdfUrl,
         pdf_name: pdfName,
+        pdf_show: pdfEmbed,
         status: "published",
       }),
     });
@@ -108,6 +118,7 @@ function Admin() {
     setImage("");
     setPdfUrl("");
     setPdfName("");
+    setPdfEmbed(false);
     setSelectedSlug("");
     setIsEditing(false);
     await loadNews();
@@ -132,6 +143,7 @@ function Admin() {
         image,
         pdf_url: pdfUrl,
         pdf_name: pdfName,
+        pdf_show: pdfEmbed,
         status: "published",
       }),
     });
@@ -168,6 +180,7 @@ function Admin() {
     setImage("");
     setPdfUrl("");
     setPdfName("");
+    setPdfEmbed(false);
     setSelectedSlug("");
     setIsEditing(false);
     await loadNews();
@@ -238,6 +251,14 @@ function Admin() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+              <label className="remember-line">
+                <input
+                  type="checkbox"
+                  checked={rememberEmail}
+                  onChange={(e) => setRememberEmail(e.target.checked)}
+                />
+                Recordar email
+              </label>
               <div className="field">
                 <label>Password</label>
                 <div className="field-inline">
@@ -279,58 +300,72 @@ function Admin() {
           )}
         </aside>
 
-        <div className="card panel">
-          <h2 className="section-title">Mis publicaciones</h2>
-          <p className="section-hint">Selecciona una para editar o eliminar.</p>
-          <div className="news-list">
-            {news.length === 0 && <p>No hay noticias todavía.</p>}
-            {news.map((item) => (
-              <button
-                key={item.slug}
-                className={`news-item ${
-                  selectedSlug === item.slug ? "active" : ""
-                }`}
-                type="button"
-                onClick={() => {
-                  setSelectedSlug(item.slug);
-                  setTitle(item.frontmatter?.title || "");
-                setContent(item.content || "");
-                setImage(item.frontmatter?.image || "");
-                setPdfUrl(item.frontmatter?.pdf_url || "");
-                setPdfName(item.frontmatter?.pdf_name || "");
-                setIsEditing(true);
-              }}
-            >
-                <span className="news-title">
-                  {item.frontmatter?.title || item.slug}
-                </span>
-                <span className="news-meta">
-                  {formatDate(item.frontmatter?.date_published)}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-        <button
-          className="btn"
-          type="button"
-          onClick={() => {
-            setSelectedSlug("");
-            setTitle("");
+        {token ? (
+          <div className="card panel">
+            <h2 className="section-title">Publicaciones</h2>
+            <p className="section-hint">Selecciona una para editar o eliminar.</p>
+            <div className="news-list">
+              {news.length === 0 && <p>No hay noticias todavía.</p>}
+              {news.map((item) => (
+                <button
+                  key={item.slug}
+                  className={`news-item ${
+                    selectedSlug === item.slug ? "active" : ""
+                  }`}
+                  type="button"
+                  onClick={() => {
+                    setSelectedSlug(item.slug);
+                    setTitle(item.frontmatter?.title || "");
+                    setContent(item.content || "");
+                    setImage(item.frontmatter?.image || "");
+                    setPdfUrl(item.frontmatter?.pdf_url || "");
+                    setPdfName(item.frontmatter?.pdf_name || "");
+                    setPdfEmbed(Boolean(item.frontmatter?.pdf_show));
+                    setIsEditing(true);
+                  }}
+                >
+                  <span className="news-title">
+                    {item.frontmatter?.title || item.slug}
+                  </span>
+                  <span className="news-meta">
+                    {formatDate(item.frontmatter?.date_published)}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <button
+              className="btn"
+              type="button"
+              onClick={() => {
+                setSelectedSlug("");
+                setTitle("");
             setContent("");
             setImage("");
             setPdfUrl("");
             setPdfName("");
+            setPdfEmbed(false);
             setIsEditing(true);
           }}
-        >
-          <Plus size={16} />
-          Crear publicación
-        </button>
+            >
+              <Plus size={16} />
+              Crear publicación
+            </button>
+          </div>
+        ) : (
+          <div className="card panel">
+            <h2 className="section-title">Publicaciones</h2>
+            <p className="section-hint">
+              Inicia sesión para ver y gestionar publicaciones.
+            </p>
+          </div>
+        )}
       </div>
 
-      {isEditing && (
-        <form className="card panel" onSubmit={handleCreate}>
+      {token && isEditing && (
+        <form
+          className="card panel"
+          onSubmit={selectedSlug ? handleUpdate : handleCreate}
+        >
         <h2 className="section-title">Edición</h2>
         <p className="section-hint">
           Crea nuevas publicaciones o actualiza las existentes.
@@ -434,23 +469,24 @@ function Admin() {
               />
             </>
           )}
+          {pdfUrl && (
+            <label className="remember-line">
+              <input
+                type="checkbox"
+                checked={pdfEmbed}
+                onChange={(e) => setPdfEmbed(e.target.checked)}
+              />
+              Mostrar PDF embebido en la noticia
+            </label>
+          )}
           <small>
             <FileText size={14} /> Máximo {maxPdfMb} MB
           </small>
         </div>
         <div className="actions">
           <button className="btn" type="submit" disabled={!token}>
-            <Plus size={16} />
-            {selectedSlug ? "Actualizar" : "Publicar"}
-          </button>
-          <button
-            className="btn secondary"
-            type="button"
-            onClick={handleUpdate}
-            disabled={!token}
-          >
             <Save size={16} />
-            Guardar cambios
+            {selectedSlug ? "Guardar cambios" : "Publicar"}
           </button>
           <button
             className="btn secondary"
@@ -465,13 +501,14 @@ function Admin() {
             className="btn secondary"
             type="button"
             onClick={() => {
-              setTitle("");
-              setContent("");
-              setImage("");
-              setPdfUrl("");
-              setPdfName("");
-              setSelectedSlug("");
-              setIsEditing(false);
+    setTitle("");
+    setContent("");
+    setImage("");
+    setPdfUrl("");
+    setPdfName("");
+    setPdfEmbed(false);
+    setSelectedSlug("");
+    setIsEditing(false);
             }}
           >
             Cancelar

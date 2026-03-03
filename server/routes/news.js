@@ -150,7 +150,8 @@ router.get("/api/news/:slug/pdf-inline/:filename", async (req, res) => {
 });
 
 router.post("/api/news", authMiddleware, async (req, res) => {
-  const { title, content, image, pdf_url, pdf_name, status } = req.body || {};
+  const { title, content, image, pdf_url, pdf_name, pdf_show, status } =
+    req.body || {};
   if (!title) {
     return res.status(400).json({ error: "Título requerido" });
   }
@@ -164,6 +165,7 @@ router.post("/api/news", authMiddleware, async (req, res) => {
     image: image || "",
     pdf_url: pdf_url || "",
     pdf_name: pdf_name || "",
+    pdf_show: Boolean(pdf_show),
   };
 
   const file = buildFilename(title);
@@ -181,7 +183,8 @@ router.post("/api/news", authMiddleware, async (req, res) => {
 
 router.put("/api/news/:slug", authMiddleware, async (req, res) => {
   const target = path.join(NEWS_DIR, `${req.params.slug}.md`);
-  const { title, content, image, pdf_url, pdf_name, status } = req.body || {};
+  const { title, content, image, pdf_url, pdf_name, pdf_show, status } =
+    req.body || {};
 
   try {
     const raw = await fs.readFile(target, "utf8");
@@ -192,6 +195,8 @@ router.put("/api/news/:slug", authMiddleware, async (req, res) => {
       image: image ?? parsed.data.image,
       pdf_url: pdf_url ?? parsed.data.pdf_url,
       pdf_name: pdf_name ?? parsed.data.pdf_name,
+      pdf_show:
+        typeof pdf_show === "boolean" ? pdf_show : parsed.data.pdf_show,
       status: status || parsed.data.status,
       date_updated: new Date().toISOString(),
     };
