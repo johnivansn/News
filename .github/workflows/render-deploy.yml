@@ -7,13 +7,16 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      RENDER_DEPLOY_HOOK_BACKEND: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
+      RENDER_DEPLOY_HOOK_FRONTEND: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}
     steps:
       - name: Trigger Render deploy (backend)
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND != '' }}
+        if: ${{ env.RENDER_DEPLOY_HOOK_BACKEND != '' }}
         run: |
-          curl -sSf -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}"
+          curl -sSf -X POST "$RENDER_DEPLOY_HOOK_BACKEND"
 
       - name: Trigger Render deploy (frontend)
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND != '' }}
+        if: ${{ env.RENDER_DEPLOY_HOOK_FRONTEND != '' }}
         run: |
-          curl -sSf -X POST "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}"
+          curl -sSf -X POST "$RENDER_DEPLOY_HOOK_FRONTEND"
