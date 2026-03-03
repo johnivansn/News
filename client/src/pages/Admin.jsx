@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -6,11 +6,27 @@ function Admin() {
   const [token, setToken] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [news, setNews] = useState([]);
+  const [selectedSlug, setSelectedSlug] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [image, setImage] = useState("");
   const [pdfUrl, setPdfUrl] = useState("");
   const [message, setMessage] = useState("");
+
+  async function loadNews() {
+    try {
+      const res = await fetch(`${API_URL}/api/news`);
+      const data = await res.json();
+      setNews(Array.isArray(data) ? data : []);
+    } catch (_err) {
+      setNews([]);
+    }
+  }
+
+  useEffect(() => {
+    loadNews();
+  }, []);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -27,6 +43,7 @@ function Admin() {
     }
     setToken(data.token);
     setMessage("Sesión iniciada");
+    await loadNews();
   }
 
   async function handleCreate(e) {
@@ -56,6 +73,8 @@ function Admin() {
     setContent("");
     setImage("");
     setPdfUrl("");
+    setSelectedSlug("");
+    await loadNews();
   }
 
   return (
@@ -82,6 +101,27 @@ function Admin() {
           Iniciar sesión
         </button>
       </form>
+
+      <div className="card panel">
+        <h2>Noticias</h2>
+        {news.length === 0 && <p>No hay noticias todavía.</p>}
+        {news.map((item) => (
+          <button
+            key={item.slug}
+            className="btn secondary"
+            type="button"
+            onClick={() => {
+              setSelectedSlug(item.slug);
+              setTitle(item.frontmatter?.title || "");
+              setContent(item.content || "");
+              setImage(item.frontmatter?.image || "");
+              setPdfUrl(item.frontmatter?.pdf_url || "");
+            }}
+          >
+            {item.frontmatter?.title || item.slug}
+          </button>
+        ))}
+      </div>
 
       <form className="card panel" onSubmit={handleCreate}>
         <div className="field">
