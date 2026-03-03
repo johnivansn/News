@@ -54,8 +54,39 @@ router.get("/api/news/:slug", async (req, res) => {
   }
 });
 
+router.get("/api/news/:slug/pdf", async (req, res) => {
+  const target = path.join(NEWS_DIR, `${req.params.slug}.md`);
+  try {
+    const raw = await fs.readFile(target, "utf8");
+    const parsed = matter(raw);
+    const pdfUrl = parsed.data?.pdf_url;
+    if (!pdfUrl) {
+      return res.status(404).json({ error: "PDF no encontrado" });
+    }
+
+    const pdfName = parsed.data?.pdf_name || "documento";
+    const response = await fetch(pdfUrl);
+    if (!response.ok) {
+      return res.status(502).json({ error: "No se pudo descargar el PDF" });
+    }
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${pdfName}.pdf"`
+    );
+    if (!response.body) {
+      return res.status(502).json({ error: "Respuesta inválida del PDF" });
+    }
+    const { Readable } = require("stream");
+    Readable.fromWeb(response.body).pipe(res);
+  } catch (_err) {
+    return res.status(404).json({ error: "PDF no encontrado" });
+  }
+});
+
 router.post("/api/news", authMiddleware, async (req, res) => {
-  const { title, content, image, pdf_url, status } = req.body || {};
+  const { title, content, image, pdf_url, pdf_name, status } = req.body || {};
   if (!title || !content) {
     return res.status(400).json({ error: "Título y contenido requeridos" });
   }
@@ -68,6 +99,7 @@ router.post("/api/news", authMiddleware, async (req, res) => {
     status: status || "published",
     image: image || "",
     pdf_url: pdf_url || "",
+    pdf_name: pdf_name || "",
   };
 
   const file = buildFilename(title);
@@ -85,7 +117,7 @@ router.post("/api/news", authMiddleware, async (req, res) => {
 
 router.put("/api/news/:slug", authMiddleware, async (req, res) => {
   const target = path.join(NEWS_DIR, `${req.params.slug}.md`);
-  const { title, content, image, pdf_url, status } = req.body || {};
+  const { title, content, image, pdf_url, pdf_name, status } = req.body || {};
 
   try {
     const raw = await fs.readFile(target, "utf8");
@@ -95,6 +127,7 @@ router.put("/api/news/:slug", authMiddleware, async (req, res) => {
       title: title || parsed.data.title,
       image: image ?? parsed.data.image,
       pdf_url: pdf_url ?? parsed.data.pdf_url,
+      pdf_name: pdf_name ?? parsed.data.pdf_name,
       status: status || parsed.data.status,
       date_updated: new Date().toISOString(),
     };

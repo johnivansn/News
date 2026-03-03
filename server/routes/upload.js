@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const authMiddleware = require("../middleware/authMiddleware");
@@ -49,7 +50,8 @@ router.post(
         resource_type: "image",
       });
       return res.json({ url: result.secure_url });
-    } catch (_err) {
+    } catch (err) {
+      console.error("Cloudinary image upload error:", err);
       return res.status(500).json({ error: "No se pudo subir imagen" });
     }
   }
@@ -71,12 +73,23 @@ router.post(
     }
 
     try {
+      const originalBase = req.file?.originalname
+        ? path.parse(req.file.originalname).name
+        : "documento";
       const result = await uploadBuffer(req.file.buffer, {
         folder: "news/pdfs",
         resource_type: "raw",
+        use_filename: true,
+        unique_filename: false,
+        filename_override: originalBase,
+        content_type: "application/pdf",
       });
-      return res.json({ url: result.secure_url });
-    } catch (_err) {
+      return res.json({
+        url: result.secure_url,
+        filename: result.original_filename || "documento",
+      });
+    } catch (err) {
+      console.error("Cloudinary PDF upload error:", err);
       return res.status(500).json({ error: "No se pudo subir PDF" });
     }
   }

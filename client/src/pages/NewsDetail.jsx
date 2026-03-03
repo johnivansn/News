@@ -32,7 +32,12 @@ function NewsDetail() {
       <p style={{ whiteSpace: "pre-wrap" }}>{item.content}</p>
       {item.frontmatter?.pdf_url && (
         <p>
-          <a href={item.frontmatter.pdf_url} target="_blank" rel="noreferrer">
+          <a
+            href={`${API_URL}/api/news/${slug}/pdf`}
+            target="_blank"
+            rel="noreferrer"
+            download
+          >
             Descargar PDF
           </a>
         </p>
