@@ -4,8 +4,8 @@
 
 - Sitio: https://news-fe.onrender.com
 - Panel admin: https://news-fe.onrender.com/admin
-- API: https://news-gogl.onrender.com
-- Health: https://news-gogl.onrender.com/health
+- API: https://newsfast.up.railway.app
+- Health: https://newsfast.up.railway.app/health
 
 ## Uso rápido
 
