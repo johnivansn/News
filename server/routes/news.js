@@ -85,6 +85,70 @@ router.get("/api/news/:slug/pdf", async (req, res) => {
   }
 });
 
+router.get("/api/news/:slug/pdf-inline", async (req, res) => {
+  const target = path.join(NEWS_DIR, `${req.params.slug}.md`);
+  try {
+    const raw = await fs.readFile(target, "utf8");
+    const parsed = matter(raw);
+    const pdfUrl = parsed.data?.pdf_url;
+    if (!pdfUrl) {
+      return res.status(404).json({ error: "PDF no encontrado" });
+    }
+
+    const response = await fetch(pdfUrl);
+    if (!response.ok) {
+      return res.status(502).json({ error: "No se pudo visualizar el PDF" });
+    }
+
+    const pdfName = parsed.data?.pdf_name || "documento";
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${pdfName}.pdf"`
+    );
+
+    if (!response.body) {
+      return res.status(502).json({ error: "Respuesta inválida del PDF" });
+    }
+    const { Readable } = require("stream");
+    Readable.fromWeb(response.body).pipe(res);
+  } catch (_err) {
+    return res.status(404).json({ error: "PDF no encontrado" });
+  }
+});
+
+router.get("/api/news/:slug/pdf-inline/:filename", async (req, res) => {
+  const target = path.join(NEWS_DIR, `${req.params.slug}.md`);
+  try {
+    const raw = await fs.readFile(target, "utf8");
+    const parsed = matter(raw);
+    const pdfUrl = parsed.data?.pdf_url;
+    if (!pdfUrl) {
+      return res.status(404).json({ error: "PDF no encontrado" });
+    }
+
+    const response = await fetch(pdfUrl);
+    if (!response.ok) {
+      return res.status(502).json({ error: "No se pudo visualizar el PDF" });
+    }
+
+    const pdfName = parsed.data?.pdf_name || "documento";
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${pdfName}.pdf"`
+    );
+
+    if (!response.body) {
+      return res.status(502).json({ error: "Respuesta inválida del PDF" });
+    }
+    const { Readable } = require("stream");
+    Readable.fromWeb(response.body).pipe(res);
+  } catch (_err) {
+    return res.status(404).json({ error: "PDF no encontrado" });
+  }
+});
+
 router.post("/api/news", authMiddleware, async (req, res) => {
   const { title, content, image, pdf_url, pdf_name, status } = req.body || {};
   if (!title) {

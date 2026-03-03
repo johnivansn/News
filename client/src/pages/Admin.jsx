@@ -28,6 +28,8 @@ function Admin() {
   const [pdfName, setPdfName] = useState("");
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmLabel, setConfirmLabel] = useState("");
   const maxImageMb = Number(import.meta.env.VITE_MAX_IMAGE_MB || 5);
   const maxPdfMb = Number(import.meta.env.VITE_MAX_PDF_MB || 20);
   const tokenStorageKey = "flatcms_token";
@@ -347,40 +349,91 @@ function Admin() {
         </div>
         <div className="field">
           <label>Imagen</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              const result = await uploadFile(file, "image");
-              if (result?.url) setImage(result.url);
-            }}
-          />
-          {image && <small>Imagen cargada</small>}
+          {image && (
+            <div className="media-preview">
+              <img src={image} alt="Imagen actual" />
+              <button
+                className="btn secondary"
+                type="button"
+                onClick={() => {
+                  setConfirmLabel("Quitar imagen");
+                  setConfirmAction(() => () => setImage(""));
+                }}
+              >
+                Quitar imagen
+              </button>
+            </div>
+          )}
+          {!image && (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const result = await uploadFile(file, "image");
+                if (result?.url) setImage(result.url);
+              }}
+            />
+          )}
           <small>
             <ImageIcon size={14} /> Máximo {maxImageMb} MB
           </small>
         </div>
         <div className="field">
           <label>PDF</label>
-          <input
-            placeholder="Nombre del PDF"
-            value={pdfName}
-            onChange={(e) => setPdfName(e.target.value)}
-          />
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              const result = await uploadFile(file, "pdf");
-              if (result?.url) setPdfUrl(result.url);
-              if (result?.filename) setPdfName(result.filename);
-            }}
-          />
-          {pdfUrl && <small>PDF cargado</small>}
+          {pdfUrl && (
+            <div className="media-preview">
+              <div>
+                <div className="media-name">
+                  {pdfName ? `${pdfName}.pdf` : "Documento PDF"}
+                </div>
+                <a
+                  className="media-link"
+                  href={pdfUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Ver PDF actual
+                </a>
+              </div>
+              <button
+                className="btn secondary"
+                type="button"
+                onClick={() => {
+                  setConfirmLabel("Quitar PDF");
+                  setConfirmAction(
+                    () => () => {
+                      setPdfUrl("");
+                      setPdfName("");
+                    }
+                  );
+                }}
+              >
+                Quitar PDF
+              </button>
+            </div>
+          )}
+          {!pdfUrl && (
+            <>
+              <input
+                placeholder="Nombre del PDF"
+                value={pdfName}
+                onChange={(e) => setPdfName(e.target.value)}
+              />
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const result = await uploadFile(file, "pdf");
+                  if (result?.url) setPdfUrl(result.url);
+                  if (result?.filename) setPdfName(result.filename);
+                }}
+              />
+            </>
+          )}
           <small>
             <FileText size={14} /> Máximo {maxPdfMb} MB
           </small>
@@ -429,6 +482,38 @@ function Admin() {
       )}
 
       {message && <div className="card">{message}</div>}
+
+      {confirmAction && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h3>Confirmar acción</h3>
+            <p>Esta acción eliminará el archivo de forma permanente.</p>
+            <div className="actions">
+              <button
+                className="btn secondary"
+                type="button"
+                onClick={() => {
+                  setConfirmAction(null);
+                  setConfirmLabel("");
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => {
+                  confirmAction();
+                  setConfirmAction(null);
+                  setConfirmLabel("");
+                }}
+              >
+                {confirmLabel || "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

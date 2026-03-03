@@ -16,7 +16,7 @@ function NewsDetail() {
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageWidth, setPageWidth] = useState(0);
-  const viewerRef = useRef(null);
+  const [pageHeight, setPageHeight] = useState(0);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -37,6 +37,7 @@ function NewsDetail() {
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
   }, [item]);
+
 
   if (error) return <div className="card">{error}</div>;
   if (!item) return <div className="card">Cargando...</div>;
@@ -68,8 +69,13 @@ function NewsDetail() {
       <p style={{ whiteSpace: "pre-wrap" }}>{item.content}</p>
       {item.frontmatter?.pdf_url && (
         <section className="pdf-section">
-          <h3>Documento PDF</h3>
-          <div className="pdf-viewer" ref={containerRef}>
+          <div
+            className="pdf-viewer"
+            ref={containerRef}
+            style={{
+              height: pageHeight ? `${pageHeight + 12}px` : "auto",
+            }}
+          >
             <Document
               file={item.frontmatter.pdf_url}
               onLoadSuccess={({ numPages: total }) => {
@@ -77,9 +83,18 @@ function NewsDetail() {
                 setPageNumber(1);
               }}
             >
-              <div ref={viewerRef}>
-                <Page pageNumber={pageNumber} width={pageWidth || undefined} />
-              </div>
+              <Page
+                pageNumber={pageNumber}
+                width={pageWidth || undefined}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                onLoadSuccess={(page) => {
+                  if (!pageWidth) return;
+                  const viewport = page.getViewport({ scale: 1 });
+                  const scale = pageWidth / viewport.width;
+                  setPageHeight(Math.round(viewport.height * scale));
+                }}
+              />
             </Document>
           </div>
           {numPages > 1 && (
@@ -87,10 +102,7 @@ function NewsDetail() {
               <button
                 className="btn secondary"
                 type="button"
-                onClick={() => {
-                  viewerRef.current?.scrollIntoView({ behavior: "smooth" });
-                  setPageNumber((p) => Math.max(1, p - 1));
-                }}
+                onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
               >
                 Anterior
               </button>
@@ -100,10 +112,7 @@ function NewsDetail() {
               <button
                 className="btn secondary"
                 type="button"
-                onClick={() => {
-                  viewerRef.current?.scrollIntoView({ behavior: "smooth" });
-                  setPageNumber((p) => Math.min(numPages, p + 1));
-                }}
+                onClick={() => setPageNumber((p) => Math.min(numPages, p + 1))}
               >
                 Siguiente
               </button>
@@ -121,7 +130,11 @@ function NewsDetail() {
           </p>
           <p>
             <a
-              href={item.frontmatter.pdf_url}
+              href={`${API_URL}/api/news/${slug}/pdf-inline/${encodeURIComponent(
+                item.frontmatter?.pdf_name
+                  ? `${item.frontmatter.pdf_name}.pdf`
+                  : "documento.pdf"
+              )}`}
               target="_blank"
               rel="noreferrer"
             >
