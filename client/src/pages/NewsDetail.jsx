@@ -119,6 +119,15 @@ function NewsDetail() {
               Descargar PDF
             </a>
           </p>
+          <p>
+            <a
+              href={item.frontmatter.pdf_url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Ver documento
+            </a>
+          </p>
         </section>
       )}
     </article>

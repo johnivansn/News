@@ -87,8 +87,8 @@ router.get("/api/news/:slug/pdf", async (req, res) => {
 
 router.post("/api/news", authMiddleware, async (req, res) => {
   const { title, content, image, pdf_url, pdf_name, status } = req.body || {};
-  if (!title || !content) {
-    return res.status(400).json({ error: "Título y contenido requeridos" });
+  if (!title) {
+    return res.status(400).json({ error: "Título requerido" });
   }
 
   const now = new Date().toISOString();
@@ -104,7 +104,7 @@ router.post("/api/news", authMiddleware, async (req, res) => {
 
   const file = buildFilename(title);
   const fullPath = path.join(NEWS_DIR, file);
-  const body = matter.stringify(content, frontmatter);
+  const body = matter.stringify(content || "", frontmatter);
 
   try {
     await ensureNewsDir();

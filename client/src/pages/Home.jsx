@@ -43,7 +43,11 @@ function Home() {
 
       <div className="news-grid">
         {news.map((item) => (
-          <article className="news-card" key={item.slug}>
+          <Link
+            key={item.slug}
+            className="news-card"
+            to={`/news/${item.slug}`}
+          >
             {item.frontmatter?.image && (
               <div className="news-image">
                 <img
@@ -59,12 +63,12 @@ function Home() {
               <p className="news-date">
                 {formatDate(item.frontmatter?.date_published)}
               </p>
+              {item.frontmatter?.pdf_url && (
+                <span className="news-badge">PDF</span>
+              )}
               <p className="news-excerpt">{excerpt(item.content)}</p>
-              <Link className="news-link" to={`/news/${item.slug}`}>
-                Leer más
-              </Link>
             </div>
-          </article>
+          </Link>
         ))}
       </div>
     </section>

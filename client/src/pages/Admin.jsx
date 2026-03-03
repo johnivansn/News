@@ -338,7 +338,7 @@ function Admin() {
           <input value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div className="field">
-          <label>Contenido</label>
+          <label>Contenido (opcional)</label>
           <textarea
             rows="6"
             value={content}
@@ -408,7 +408,6 @@ function Admin() {
             <Trash2 size={16} />
             Eliminar
           </button>
-          {uploading && <span>Subiendo...</span>}
           <button
             className="btn secondary"
             type="button"
@@ -425,6 +424,7 @@ function Admin() {
             Cancelar
           </button>
         </div>
+        {uploading && <div className="uploading-note">Subiendo...</div>}
       </form>
       )}
 
