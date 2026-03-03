@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import {
   Image as ImageIcon,
+  Eye,
+  EyeOff,
   FileText,
   LogIn,
   LogOut,
@@ -15,8 +17,10 @@ function Admin() {
   const [token, setToken] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [news, setNews] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [image, setImage] = useState("");
@@ -27,6 +31,7 @@ function Admin() {
   const maxImageMb = Number(import.meta.env.VITE_MAX_IMAGE_MB || 5);
   const maxPdfMb = Number(import.meta.env.VITE_MAX_PDF_MB || 20);
   const tokenStorageKey = "flatcms_token";
+  const emailStorageKey = "flatcms_email";
 
   async function loadNews() {
     try {
@@ -41,6 +46,8 @@ function Admin() {
   useEffect(() => {
     const savedToken = localStorage.getItem(tokenStorageKey);
     if (savedToken) setToken(savedToken);
+    const savedEmail = localStorage.getItem(emailStorageKey);
+    if (savedEmail) setEmail(savedEmail);
     loadNews();
   }, []);
 
@@ -59,14 +66,15 @@ function Admin() {
     }
     setToken(data.token);
     localStorage.setItem(tokenStorageKey, data.token);
-    setMessage("Sesión iniciada");
+    localStorage.setItem(emailStorageKey, email);
+    setMessage("");
     await loadNews();
   }
 
   function handleLogout() {
     setToken("");
     localStorage.removeItem(tokenStorageKey);
-    setMessage("Sesión cerrada");
+    setMessage("");
   }
 
   async function handleCreate(e) {
@@ -99,6 +107,7 @@ function Admin() {
     setPdfUrl("");
     setPdfName("");
     setSelectedSlug("");
+    setIsEditing(false);
     await loadNews();
   }
 
@@ -130,6 +139,7 @@ function Admin() {
       return;
     }
     setMessage("Noticia actualizada");
+    setIsEditing(false);
     await loadNews();
   }
 
@@ -157,6 +167,7 @@ function Admin() {
     setPdfUrl("");
     setPdfName("");
     setSelectedSlug("");
+    setIsEditing(false);
     await loadNews();
   }
 
@@ -193,64 +204,140 @@ function Admin() {
     return data;
   }
 
+  function formatDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString("es-ES", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   return (
     <section className="panel">
-      <div className="card">
-        <h1>Admin</h1>
-        <p>Inicia sesión y publica noticias.</p>
+      <div className="card admin-hero">
+        <div>
+          <h1>Panel de administración</h1>
+          <p>Gestiona tus publicaciones en un solo lugar.</p>
+        </div>
       </div>
 
-      <form className="card panel" onSubmit={handleLogin}>
-        <div className="field">
-          <label>Email</label>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} />
+      <div className="admin-grid">
+        <aside className="card panel admin-side">
+          <h2 className="section-title">Sesión</h2>
+          <p className="section-hint">
+            Acceso exclusivo para el administrador.
+          </p>
+          {!token ? (
+            <form className="panel" onSubmit={handleLogin}>
+              <div className="field">
+                <label>Email</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Password</label>
+                <div className="field-inline">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    className="icon-btn"
+                    type="button"
+                    aria-label={
+                      showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    }
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div className="actions">
+                <button className="btn" type="submit">
+                  <LogIn size={16} />
+                  Iniciar sesión
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="actions">
+              <button
+                className="btn secondary"
+                type="button"
+                onClick={handleLogout}
+              >
+                <LogOut size={16} />
+                Cerrar sesión
+              </button>
+            </div>
+          )}
+        </aside>
+
+        <div className="card panel">
+          <h2 className="section-title">Mis publicaciones</h2>
+          <p className="section-hint">Selecciona una para editar o eliminar.</p>
+          <div className="news-list">
+            {news.length === 0 && <p>No hay noticias todavía.</p>}
+            {news.map((item) => (
+              <button
+                key={item.slug}
+                className={`news-item ${
+                  selectedSlug === item.slug ? "active" : ""
+                }`}
+                type="button"
+                onClick={() => {
+                  setSelectedSlug(item.slug);
+                  setTitle(item.frontmatter?.title || "");
+                setContent(item.content || "");
+                setImage(item.frontmatter?.image || "");
+                setPdfUrl(item.frontmatter?.pdf_url || "");
+                setPdfName(item.frontmatter?.pdf_name || "");
+                setIsEditing(true);
+              }}
+            >
+                <span className="news-title">
+                  {item.frontmatter?.title || item.slug}
+                </span>
+                <span className="news-meta">
+                  {formatDate(item.frontmatter?.date_published)}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="field">
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <button className="btn" type="submit">
-          <LogIn size={16} />
-          Iniciar sesión
-        </button>
         <button
-          className="btn secondary"
+          className="btn"
           type="button"
-          onClick={handleLogout}
-          disabled={!token}
+          onClick={() => {
+            setSelectedSlug("");
+            setTitle("");
+            setContent("");
+            setImage("");
+            setPdfUrl("");
+            setPdfName("");
+            setIsEditing(true);
+          }}
         >
-          <LogOut size={16} />
-          Cerrar sesión
+          <Plus size={16} />
+          Crear publicación
         </button>
-      </form>
-
-      <div className="card panel">
-        <h2>Noticias</h2>
-        {news.length === 0 && <p>No hay noticias todavía.</p>}
-        {news.map((item) => (
-          <button
-            key={item.slug}
-            className="btn secondary"
-            type="button"
-            onClick={() => {
-              setSelectedSlug(item.slug);
-              setTitle(item.frontmatter?.title || "");
-              setContent(item.content || "");
-              setImage(item.frontmatter?.image || "");
-              setPdfUrl(item.frontmatter?.pdf_url || "");
-              setPdfName(item.frontmatter?.pdf_name || "");
-            }}
-          >
-            {item.frontmatter?.title || item.slug}
-          </button>
-        ))}
       </div>
 
-      <form className="card panel" onSubmit={handleCreate}>
+      {isEditing && (
+        <form className="card panel" onSubmit={handleCreate}>
+        <h2 className="section-title">Edición</h2>
+        <p className="section-hint">
+          Crea nuevas publicaciones o actualiza las existentes.
+        </p>
         <div className="field">
           <label>Título</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -264,8 +351,7 @@ function Admin() {
           />
         </div>
         <div className="field">
-          <label>URL Imagen</label>
-          <input value={image} onChange={(e) => setImage(e.target.value)} />
+          <label>Imagen</label>
           <input
             type="file"
             accept="image/*"
@@ -276,13 +362,13 @@ function Admin() {
               if (result?.url) setImage(result.url);
             }}
           />
+          {image && <small>Imagen cargada</small>}
           <small>
             <ImageIcon size={14} /> Máximo {maxImageMb} MB
           </small>
         </div>
         <div className="field">
-          <label>URL PDF</label>
-          <input value={pdfUrl} onChange={(e) => setPdfUrl(e.target.value)} />
+          <label>PDF</label>
           <input
             placeholder="Nombre del PDF"
             value={pdfName}
@@ -299,6 +385,7 @@ function Admin() {
               if (result?.filename) setPdfName(result.filename);
             }}
           />
+          {pdfUrl && <small>PDF cargado</small>}
           <small>
             <FileText size={14} /> Máximo {maxPdfMb} MB
           </small>
@@ -306,7 +393,7 @@ function Admin() {
         <div className="actions">
           <button className="btn" type="submit" disabled={!token}>
             <Plus size={16} />
-            Publicar
+            {selectedSlug ? "Actualizar" : "Publicar"}
           </button>
           <button
             className="btn secondary"
@@ -337,12 +424,14 @@ function Admin() {
               setPdfUrl("");
               setPdfName("");
               setSelectedSlug("");
+              setIsEditing(false);
             }}
           >
-            Limpiar
+            Cancelar
           </button>
         </div>
       </form>
+      )}
 
       {message && <div className="card">{message}</div>}
     </section>

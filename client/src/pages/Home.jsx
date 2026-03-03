@@ -14,6 +14,19 @@ function Home() {
       .catch(() => setError("No se pudieron cargar las noticias"));
   }, []);
 
+  function formatDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString("es-ES", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   return (
     <section className="panel">
       <div className="card">
@@ -26,7 +39,7 @@ function Home() {
       {news.map((item) => (
         <div className="card" key={item.slug}>
           <h2>{item.frontmatter?.title || "Sin título"}</h2>
-          <p>{item.frontmatter?.date_published || ""}</p>
+          <p>{formatDate(item.frontmatter?.date_published)}</p>
           <Link to={`/news/${item.slug}`}>Leer más</Link>
         </div>
       ))}
